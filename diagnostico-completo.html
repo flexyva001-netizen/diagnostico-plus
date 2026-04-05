@@ -6,13 +6,11 @@
   <title>Diagnóstico Integral de Negocio — Propuesta Personalizada en 48h</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <!-- EmailJS para envío de correos desde el formulario -->
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>
-    // ⚙️ CONFIGURACIÓN EMAILJS — Reemplaza estos valores con tu cuenta en emailjs.com
-    (function(){
-      emailjs.init({ publicKey: "TU_PUBLIC_KEY_AQUI" });
-    })();
-  </script>
+  <script src="supabase-config.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -730,7 +728,7 @@
           </div>
           <div class="form-group">
             <label>Apellido *</label>
-            <input type="text" placeholder="Tu apellido" required />
+            <input type="text" id="inputApellido" placeholder="Tu apellido" required />
           </div>
         </div>
         <div class="form-group">
@@ -791,6 +789,10 @@
 </div>
 
 <script>
+  /* ── Supabase client ── */
+  const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  (function(){ emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY }); })();
+
   /* ── Modal ── */
   function openModal() {
     document.getElementById('modal').classList.add('active');
@@ -804,34 +806,60 @@
     if (e.target === document.getElementById('modal')) closeModal();
   }
 
-  /* ── Enviar correos y mostrar estado de éxito ── */
-  function handleModalSubmit(e) {
+  /* ── Guardar lead en Supabase y mostrar éxito ── */
+  async function handleModalSubmit(e) {
     e.preventDefault();
 
-    var nombre  = document.getElementById('inputNombre').value.trim();
-    var email   = document.getElementById('inputEmail').value.trim();
-    var negocio = document.getElementById('inputNegocio').value.trim();
-    var sector  = document.getElementById('inputSector').value || 'No especificado';
-    var reto    = document.getElementById('inputReto').value   || 'No especificado';
+    var nombre   = document.getElementById('inputNombre').value.trim();
+    var apellido = document.getElementById('inputApellido').value.trim();
+    var email    = document.getElementById('inputEmail').value.trim();
+    var negocio  = document.getElementById('inputNegocio').value.trim();
+    var sector   = document.getElementById('inputSector').value || 'No especificado';
+    var reto     = document.getElementById('inputReto').value   || 'No especificado';
 
-    // Guardar datos para la URL del cuestionario
-    window._formData = { nombre, email, negocio, sector, reto };
+    var leadId = null;
 
-    // Mostrar estado de éxito en el modal
+    try {
+      // INSERT en tabla leads
+      var { data, error } = await _sb.from('leads').insert({
+        nombre, apellido, email,
+        empresa: negocio, sector, reto
+      }).select('id').single();
+
+      if (error) throw error;
+      leadId = data.id;
+
+      // Log de actividad
+      await _sb.from('log_actividad').insert({
+        tipo: 'lead_registrado',
+        referencia_id: leadId,
+        datos: { nombre, apellido, email, empresa: negocio, sector, reto },
+        user_agent: navigator.userAgent
+      });
+    } catch (err) {
+      console.error('Supabase error:', err);
+      // Continuar igual aunque falle — no bloquear al usuario
+    }
+
+    // Guardar datos en memoria para redirección
+    window._formData = { nombre, apellido, email, negocio, sector, reto, leadId };
+
+    // Mostrar estado de éxito
     document.getElementById('modalForm').style.display = 'none';
     document.getElementById('modalSuccess').classList.add('show');
-    // Los correos se envían desde cuestionario.html al completar el diagnóstico
   }
 
   /* ── Ir al cuestionario personalizado ── */
   function goToQuestionnaire() {
     var d = window._formData || {};
     var params = new URLSearchParams({
-      n: d.nombre  || '',
-      e: d.email   || '',
-      c: d.negocio || '',
-      s: d.sector  || '',
-      r: d.reto    || ''
+      n:   d.nombre   || '',
+      ap:  d.apellido || '',
+      e:   d.email    || '',
+      c:   d.negocio  || '',
+      s:   d.sector   || '',
+      r:   d.reto     || '',
+      lid: d.leadId   || ''
     });
     window.location.href = 'cuestionario.html?' + params.toString();
   }

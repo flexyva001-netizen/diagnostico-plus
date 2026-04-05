@@ -3,6 +3,7 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "routes": [
+    { "src": "/supabase-config.js", "dest": "/supabase-config.js" },
     { "src": "/cuestionario", "dest": "/cuestionario.html" },
     { "src": "/cuestionario.html", "dest": "/cuestionario.html" },
     { "src": "/", "dest": "/index.html" }
