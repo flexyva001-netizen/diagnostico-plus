@@ -576,50 +576,49 @@
     ];
 
     var result = {
-      metadata: {
-        fecha_envio: new Date().toLocaleString('es-ES', {dateStyle:'full', timeStyle:'short'}),
-        nombre:       pName    || '—',
-        email:        pEmail   || '—',
-        empresa:      pCompany || '—',
-        sector:       pSector  || '—',
-        reto_inicial: pReto    || '—'
+      meta: {
+        nombre:  pName    || '—',
+        email:   pEmail   || '—',
+        empresa: pCompany || '—',
+        sector:  pSector  || '—',
+        reto:    pReto    || '—',
+        fecha:   new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })
       },
-      secciones: []
+      respuestas: []
     };
 
     for (var s = 0; s < 6; s++) {
       var secEl = document.getElementById('sec-' + s);
       if (!secEl) continue;
-      var preguntas = [];
+      var secNum    = s + 1;
+      var secNombre = secNames[s] || ('Sección ' + secNum);
 
-      // Sección 8 (s=7): grilla de redes sociales (sin q-num)
-      if (s === 7) {
-        var grid = secEl.querySelector('.social-grid');
-        if (grid) {
-          var lbls = grid.querySelectorAll('.social-label');
-          var inps = grid.querySelectorAll('input');
-          var redes = {};
-          lbls.forEach(function(l, i) {
-            var key = l.textContent.replace(/[^\w\s\/]/g, '').trim();
-            redes[key] = (inps[i] && inps[i].value.trim()) || '—';
-          });
-          preguntas.push({ numero: 'R', pregunta: 'Perfiles en Redes Sociales', respuesta: redes });
-        }
+      // Grilla de redes sociales (sin q-item estándar)
+      var grid = secEl.querySelector('.social-grid');
+      if (grid) {
+        var lbls = grid.querySelectorAll('.social-label');
+        var inps = grid.querySelectorAll('input');
+        var redes = {};
+        lbls.forEach(function(l, i) {
+          var key = l.textContent.replace(/[^\w\s\/]/g, '').trim();
+          redes[key] = (inps[i] && inps[i].value.trim()) || '—';
+        });
+        result.respuestas.push({ s: secNum, sec: secNombre, n: 'R', p: 'Perfiles en redes sociales', r: redes });
       }
 
-      // Preguntas numeradas (todas las secciones)
+      // Preguntas estándar
       secEl.querySelectorAll('.q-item').forEach(function(item) {
         var numEl = item.querySelector('.q-num');
         var lblEl = item.querySelector('.q-label-text');
         if (!numEl || !lblEl) return;
-        preguntas.push({
-          numero: parseInt(numEl.textContent.trim()),
-          pregunta: lblEl.textContent.trim(),
-          respuesta: getItemAnswer(item)
+        result.respuestas.push({
+          s:   secNum,
+          sec: secNombre,
+          n:   numEl.textContent.trim(),
+          p:   lblEl.textContent.trim(),
+          r:   getItemAnswer(item)
         });
       });
-
-      result.secciones.push({ seccion: s + 1, titulo: secNames[s], preguntas: preguntas });
     }
 
     return result;
@@ -636,14 +635,14 @@
   }
 
   function buildAnswersHTML(data) {
-    var m = data.metadata;
+    var m = data.meta;
     var h = '';
     h += '<div style="font-family:Arial,sans-serif;color:#2B2B2B;max-width:680px;">';
 
     // Header
     h += '<div style="background:#2B2B2B;padding:22px 26px;border-radius:8px 8px 0 0;">';
-    h += '<h2 style="color:#fff;margin:0;font-size:15px;letter-spacing:.04em;">📋 DIAGNÓSTICO COMPLETO · FLEXISTUDIO</h2>';
-    h += '<p style="color:#aaa;margin:5px 0 0;font-size:11px;">Enviado: ' + m.fecha_envio + '</p>';
+    h += '<h2 style="color:#fff;margin:0;font-size:15px;letter-spacing:.04em;">📋 DIAGNÓSTICO COMPLETO · FLEXYSTUDIO</h2>';
+    h += '<p style="color:#aaa;margin:5px 0 0;font-size:11px;">Enviado: ' + m.fecha + '</p>';
     h += '</div>';
 
     // Priority + client data
@@ -652,37 +651,46 @@
     h += '</div>';
     h += '<div style="background:#f9f9f7;border:1px solid #e2ddd8;border-top:none;padding:16px 26px;">';
     h += '<table style="width:100%;border-collapse:collapse;">';
-    var mFields = [['NOMBRE', m.nombre],['EMAIL','<a href="mailto:'+m.email+'" style="color:#7A8F7B;">'+m.email+'</a>'],['EMPRESA',m.empresa],['SECTOR',m.sector],['RETO INICIAL',m.reto_inicial]];
-    mFields.forEach(function(f){
-      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:130px;white-space:nowrap;">'+f[0]+'</td>';
-      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">'+f[1]+'</td></tr>';
+    [['NOMBRE', m.nombre], ['EMAIL', '<a href="mailto:' + m.email + '" style="color:#7A8F7B;">' + m.email + '</a>'],
+     ['EMPRESA', m.empresa], ['SECTOR', m.sector], ['RETO', m.reto]
+    ].forEach(function(f) {
+      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:100px;white-space:nowrap;">' + f[0] + '</td>';
+      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">' + f[1] + '</td></tr>';
     });
     h += '</table></div>';
 
-    // Sections
-    data.secciones.forEach(function(sec) {
+    // Agrupar respuestas por sección para mostrarlas ordenadas
+    var secciones = {};
+    data.respuestas.forEach(function(item) {
+      var key = item.s;
+      if (!secciones[key]) secciones[key] = { titulo: item.sec, items: [] };
+      secciones[key].items.push(item);
+    });
+
+    Object.keys(secciones).sort(function(a,b){ return a-b; }).forEach(function(sKey) {
+      var sec = secciones[sKey];
       h += '<div style="margin-top:16px;">';
       h += '<div style="background:#7A8F7B;padding:9px 26px;">';
-      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">SECCIÓN ' + sec.seccion + ' — ' + sec.titulo.toUpperCase() + '</h3>';
+      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">SECCIÓN ' + sKey + ' — ' + sec.titulo.toUpperCase() + '</h3>';
       h += '</div>';
-      sec.preguntas.forEach(function(p, i) {
-        var bg = i % 2 === 0 ? '#ffffff' : '#f9f9f7';
+      sec.items.forEach(function(item, idx) {
+        var bg = idx % 2 === 0 ? '#ffffff' : '#f9f9f7';
         h += '<div style="background:' + bg + ';border:1px solid #e2ddd8;border-top:none;padding:10px 26px;">';
-        if (p.numero !== 'R') {
-          h += '<span style="font-size:10px;font-weight:700;color:#D8B4A0;margin-right:6px;">P' + p.numero + '</span>';
+        if (item.n !== 'R') {
+          h += '<span style="font-size:10px;font-weight:700;color:#D8B4A0;margin-right:6px;">P' + item.n + '</span>';
         }
-        h += '<span style="font-size:12px;font-weight:600;color:#2B2B2B;">' + p.pregunta + '</span>';
-        h += '<div style="font-size:13px;color:#555;margin-top:4px;line-height:1.6;">' + answerToStr(p.respuesta) + '</div>';
+        h += '<span style="font-size:12px;font-weight:600;color:#2B2B2B;">' + item.p + '</span>';
+        h += '<div style="font-size:13px;color:#555;margin-top:4px;line-height:1.6;">' + answerToStr(item.r) + '</div>';
         h += '</div>';
       });
       h += '</div>';
     });
 
-    // JSON block
-    var jsonStr = JSON.stringify(data, null, 2);
+    // JSON compacto al final (solo para admin)
+    var jsonCompacto = JSON.stringify(data, null, 2);
     h += '<div style="margin-top:20px;background:#1e1e1e;padding:16px 22px;border-radius:0 0 8px 8px;">';
-    h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 DATOS COMPLETOS EN JSON</p>';
-    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + jsonStr + '</pre>';
+    h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 JSON COMPACTO — DATOS COMPLETOS</p>';
+    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + jsonCompacto + '</pre>';
     h += '</div>';
 
     h += '</div>';
@@ -721,29 +729,20 @@
       if (diagError) throw diagError;
 
       // 2b. INSERT respuestas individuales (una fila por pregunta)
-      var filas = [];
-      if (answersData.secciones) {
-        answersData.secciones.forEach(function(sec) {
-          (sec.preguntas || []).forEach(function(p) {
-            var esComplejo = (typeof p.respuesta === 'object' && p.respuesta !== null);
-            filas.push({
-              diagnostico_id: diagId,
-              lead_id:        pLeadId || null,
-              seccion_num:    sec.seccion,
-              seccion_nombre: sec.titulo,
-              pregunta_num:   String(p.numero),
-              pregunta_texto: p.pregunta,
-              tipo_respuesta: Array.isArray(p.respuesta)
-                                ? 'opcion_multiple'
-                                : esComplejo
-                                  ? 'objeto'
-                                  : 'texto',
-              respuesta_texto: esComplejo ? null : String(p.respuesta || '—'),
-              respuesta_json:  esComplejo ? p.respuesta : null
-            });
-          });
-        });
-      }
+      var filas = (answersData.respuestas || []).map(function(item) {
+        var esComplejo = (typeof item.r === 'object' && item.r !== null);
+        return {
+          diagnostico_id:  diagId,
+          lead_id:         pLeadId || null,
+          seccion_num:     item.s,
+          seccion_nombre:  item.sec,
+          pregunta_num:    String(item.n),
+          pregunta_texto:  item.p,
+          tipo_respuesta:  Array.isArray(item.r) ? 'opcion_multiple' : esComplejo ? 'objeto' : 'texto',
+          respuesta_texto: esComplejo ? null : String(item.r || '—'),
+          respuesta_json:  esComplejo ? item.r : null
+        };
+      });
       if (filas.length > 0) {
         var { error: rErr } = await _sb.from('diagnostico_respuestas').insert(filas);
         if (rErr) console.warn('Respuestas individuales:', rErr);
