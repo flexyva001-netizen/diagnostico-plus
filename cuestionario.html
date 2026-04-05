@@ -307,7 +307,7 @@
     <div class="w-icon">👋</div>
     <div>
       <h4 id="welcomeName">¡Bienvenido/a! Tu diagnóstico está listo.</h4>
-      <p>Completa las 6 secciones. Puedes navegar entre ellas usando las pestañas o los botones de navegación.</p>
+      <p>Completa las 10 secciones. Puedes navegar entre ellas usando las pestañas o los botones de navegación.</p>
     </div>
   </div>
 
@@ -350,7 +350,7 @@
       <div class="q-item"><div class="q-label"><span class="q-num">5</span><span class="q-label-text">¿A qué público o tipo de persona se dirige principalmente tu negocio?</span></div><p class="q-hint">Describe su perfil: edad, ocupación, situación de vida, dolores y aspiraciones...</p><textarea placeholder="Describe tu cliente ideal..."></textarea></div>
       <div class="q-item"><div class="q-label"><span class="q-num">6</span><span class="q-label-text">¿Qué frase o eslogan representa mejor a tu marca?</span></div><p class="q-hint">Si no tienes eslogan aún, ¿qué frase te gustaría que la gente asociara a tu negocio?</p><textarea placeholder="Tu eslogan o frase de marca..." style="min-height:70px;"></textarea></div>
       <div class="q-item"><div class="q-label"><span class="q-num">7</span><span class="q-label-text">¿Cuántos años lleva operando tu negocio?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Menos de 1 año</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>1 – 3 años</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>3 – 5 años</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 5 años</label></div></div></div>
-      <div class="q-item"><div class="q-label"><span class="q-num">8</span><span class="q-label-text">¿Cuántas personas trabajan actualmente en tu empresa?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Solo yo </label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>2 – 5 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>6 – 20 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>21 – 50 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 50 personas</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">8</span><span class="q-label-text">¿Cuántas personas trabajan actualmente en tu empresa?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Solo yo (solopreneur)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>2 – 5 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>6 – 20 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>21 – 50 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 50 personas</label></div></div></div>
       <div class="q-item"><div class="q-label"><span class="q-num">9</span><span class="q-label-text">¿Dónde opera principalmente tu negocio?</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Local / una ciudad</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Regional / varios estados o provincias</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Nacional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Internacional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>100% digital / remoto</label></div></div></div>
     </div>
     <div class="q-nav"><button class="btn-nav btn-next" onclick="next(0)">Siguiente →</button></div>
@@ -447,9 +447,7 @@
       <div class="s-pill">⏱ Propuesta en 48h</div>
       <div class="s-pill">🔒 Confidencial</div>
     </div>
-    <!-- Botón descarga JSON — aparece automáticamente al enviar -->
-    <a id="downloadJSON" href="#" download style="display:none;margin:18px auto 4px;padding:12px 28px;background:#2B2B2B;color:#fff;border-radius:6px;font-size:0.82rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;align-items:center;gap:8px;">📄 Descargar respuestas (JSON)</a>
-    <p id="downloadNote" style="display:none;font-size:0.74rem;color:var(--muted);margin-bottom:18px;">Archivo con todas tus respuestas · útil como respaldo</p>
+
     <a href="/" class="btn-home">← Volver al inicio</a>
     <p class="redirect-note" id="redirectNote">Serás redirigido automáticamente en <span id="countdown">8</span> segundos...</p>
   </div>
@@ -589,7 +587,7 @@
       secciones: []
     };
 
-    for (var s = 0; s < 10; s++) {
+    for (var s = 0; s < 6; s++) {
       var secEl = document.getElementById('sec-' + s);
       if (!secEl) continue;
       var preguntas = [];
@@ -707,8 +705,9 @@
     var answersHTML  = buildAnswersHTML(answersData);
 
     // 2. Guardar en Supabase (DB)
-    var diagId = crypto.randomUUID();  // generamos el ID localmente
+    var diagId = crypto.randomUUID();
     try {
+      // 2a. INSERT diagnóstico (cabecera + JSON completo)
       var { error: diagError } = await _sb.from('diagnosticos').insert({
         id:              diagId,
         lead_id:         pLeadId  || null,
@@ -719,10 +718,38 @@
         respuestas:      answersData,
         total_preguntas: 34
       });
-
       if (diagError) throw diagError;
 
-      // INSERT log de actividad
+      // 2b. INSERT respuestas individuales (una fila por pregunta)
+      var filas = [];
+      if (answersData.secciones) {
+        answersData.secciones.forEach(function(sec) {
+          (sec.preguntas || []).forEach(function(p) {
+            var esComplejo = (typeof p.respuesta === 'object' && p.respuesta !== null);
+            filas.push({
+              diagnostico_id: diagId,
+              lead_id:        pLeadId || null,
+              seccion_num:    sec.seccion,
+              seccion_nombre: sec.titulo,
+              pregunta_num:   String(p.numero),
+              pregunta_texto: p.pregunta,
+              tipo_respuesta: Array.isArray(p.respuesta)
+                                ? 'opcion_multiple'
+                                : esComplejo
+                                  ? 'objeto'
+                                  : 'texto',
+              respuesta_texto: esComplejo ? null : String(p.respuesta || '—'),
+              respuesta_json:  esComplejo ? p.respuesta : null
+            });
+          });
+        });
+      }
+      if (filas.length > 0) {
+        var { error: rErr } = await _sb.from('diagnostico_respuestas').insert(filas);
+        if (rErr) console.warn('Respuestas individuales:', rErr);
+      }
+
+      // 2c. INSERT log de actividad
       await _sb.from('log_actividad').insert({
         tipo:          'diagnostico_enviado',
         referencia_id: diagId,
@@ -738,6 +765,7 @@
         },
         user_agent: navigator.userAgent
       });
+
     } catch(err) {
       console.error('Supabase error:', err);
     }
@@ -769,19 +797,7 @@
       }).catch(function(err) { console.warn('Email admin:', err); });
     }
 
-    // 4. Generar JSON descargable (respaldo local)
-    try {
-      var blob    = new Blob([jsonStr], { type: 'application/json' });
-      var blobUrl = URL.createObjectURL(blob);
-      var dlLink  = document.getElementById('downloadJSON');
-      var dlNote  = document.getElementById('downloadNote');
-      if (dlLink) {
-        dlLink.href     = blobUrl;
-        dlLink.download = 'diagnostico_' + (pName || 'cliente').replace(/\s+/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.json';
-        dlLink.style.display = 'inline-flex';
-      }
-      if (dlNote) dlNote.style.display = 'block';
-    } catch(e) { console.warn('JSON Blob:', e); }
+
 
     // 5. UI: ocultar secciones, mostrar pantalla de éxito
     document.querySelectorAll('.q-section').forEach(function(s){ s.classList.remove('active'); });
