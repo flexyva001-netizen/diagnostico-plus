@@ -566,14 +566,27 @@
   }
 
   function collectAnswers() {
-    var secNames = [
-      'Tu Empresa',
-      'Situación Actual',
-      'Ventas y Marketing',
-      'Branding e Identidad Visual',
-      'Presencia Digital y Tecnología',
-      'Visión y Colaboración'
-    ];
+    // Mapa pregunta-número → nombre de columna (igual que la tabla diagnostico_respuestas)
+    var colMap = {
+      '1':  'historia_origen',       '2':  'mision',
+      '3':  'vision',                '4':  'valores',
+      '5':  'publico_objetivo',      '6':  'eslogan',
+      '7':  'anos_operando',         '8':  'cantidad_empleados',
+      '9':  'ubicacion_operacion',   '10': 'mayor_reto',
+      '11': 'objetivos_12_meses',    '12': 'area_mejora',
+      '13': 'urgencia',              '14': 'adquisicion_clientes',
+      '15': 'clientes_nuevos_mes',   '16': 'rango_ingresos',
+      '17': 'proceso_ventas',        '18': 'frecuencia_publicacion',
+      '19': 'presupuesto_marketing', '20': 'identidad_visual',
+      '21': 'colores_marca',         '22': 'tipografias',
+      '23': 'tiene_logo',            '24': 'sensaciones_marca',
+      '25': 'marcas_referencia',     '26': 'materiales_marketing',
+      '27': 'tono_comunicacion',     '28': 'plataforma_resultados',
+      '29': 'red_social_crecer',     '30': 'nivel_digitalizacion',
+      '31': 'procesos_automatizar',  '32': 'vision_3_anos',
+      '33': 'tipo_apoyo_buscado',    '34': 'informacion_adicional',
+      'R':  'redes_sociales'
+    };
 
     var result = {
       meta: {
@@ -583,41 +596,41 @@
         sector:  pSector  || '—',
         reto:    pReto    || '—',
         fecha:   new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })
-      },
-      respuestas: []
+      }
     };
 
     for (var s = 0; s < 6; s++) {
       var secEl = document.getElementById('sec-' + s);
       if (!secEl) continue;
-      var secNum    = s + 1;
-      var secNombre = secNames[s] || ('Sección ' + secNum);
 
-      // Grilla de redes sociales (sin q-item estándar)
+      // Grilla de redes sociales
       var grid = secEl.querySelector('.social-grid');
       if (grid) {
         var lbls = grid.querySelectorAll('.social-label');
         var inps = grid.querySelectorAll('input');
         var redes = {};
-        lbls.forEach(function(l, i) {
+        lbls.forEach(function(l, idx) {
           var key = l.textContent.replace(/[^\w\s\/]/g, '').trim();
-          redes[key] = (inps[i] && inps[i].value.trim()) || '—';
+          redes[key] = (inps[idx] && inps[idx].value.trim()) || '—';
         });
-        result.respuestas.push({ s: secNum, sec: secNombre, n: 'R', p: 'Perfiles en redes sociales', r: redes });
+        result['redes_sociales'] = redes;
       }
 
-      // Preguntas estándar
+      // Preguntas numeradas
       secEl.querySelectorAll('.q-item').forEach(function(item) {
         var numEl = item.querySelector('.q-num');
-        var lblEl = item.querySelector('.q-label-text');
-        if (!numEl || !lblEl) return;
-        result.respuestas.push({
-          s:   secNum,
-          sec: secNombre,
-          n:   numEl.textContent.trim(),
-          p:   lblEl.textContent.trim(),
-          r:   getItemAnswer(item)
-        });
+        if (!numEl) return;
+        var col = colMap[numEl.textContent.trim()];
+        if (!col) return;
+        var val = getItemAnswer(item);
+        // Arrays → string separado por " · " (excepto redes_sociales que ya es objeto)
+        if (Array.isArray(val)) {
+          result[col] = val.join(' · ');
+        } else if (typeof val === 'object' && val !== null) {
+          result[col] = val;   // objeto → se guarda como JSONB o JSON.stringify
+        } else {
+          result[col] = String(val || '—');
+        }
       });
     }
 
@@ -636,8 +649,50 @@
 
   function buildAnswersHTML(data) {
     var m = data.meta;
-    var h = '';
-    h += '<div style="font-family:Arial,sans-serif;color:#2B2B2B;max-width:680px;">';
+    // Estructura de secciones para visualización en el correo
+    var secciones = [
+      { titulo: 'Tu Empresa', cols: [
+        ['historia_origen','¿Cómo nació tu empresa?'],
+        ['mision','Misión'],['vision','Visión'],['valores','Valores'],
+        ['publico_objetivo','Público objetivo'],['eslogan','Eslogan']
+      ]},
+      { titulo: 'Situación Actual', cols: [
+        ['anos_operando','Años operando'],['cantidad_empleados','Empleados'],
+        ['ubicacion_operacion','Ubicación'],['mayor_reto','Mayor reto'],
+        ['objetivos_12_meses','Objetivos 12 meses'],
+        ['area_mejora','Área de mejora'],['urgencia','Urgencia']
+      ]},
+      { titulo: 'Ventas y Marketing', cols: [
+        ['adquisicion_clientes','Adquisición de clientes'],
+        ['clientes_nuevos_mes','Clientes nuevos/mes'],
+        ['rango_ingresos','Rango de ingresos'],
+        ['proceso_ventas','Proceso de ventas'],
+        ['frecuencia_publicacion','Frecuencia publicación'],
+        ['presupuesto_marketing','Presupuesto marketing']
+      ]},
+      { titulo: 'Branding e Identidad Visual', cols: [
+        ['identidad_visual','Identidad visual'],['colores_marca','Colores'],
+        ['tipografias','Tipografías'],['tiene_logo','Tiene logo'],
+        ['sensaciones_marca','Sensaciones de marca'],
+        ['marcas_referencia','Marcas de referencia'],
+        ['materiales_marketing','Materiales de marketing'],
+        ['tono_comunicacion','Tono de comunicación']
+      ]},
+      { titulo: 'Presencia Digital y Tecnología', cols: [
+        ['redes_sociales','Perfiles en redes sociales'],
+        ['plataforma_resultados','Plataforma con mejores resultados'],
+        ['red_social_crecer','Red social para crecer'],
+        ['nivel_digitalizacion','Nivel de digitalización'],
+        ['procesos_automatizar','Procesos a automatizar']
+      ]},
+      { titulo: 'Visión y Colaboración', cols: [
+        ['vision_3_anos','Visión en 3 años'],
+        ['tipo_apoyo_buscado','Tipo de apoyo buscado'],
+        ['informacion_adicional','Información adicional']
+      ]}
+    ];
+
+    var h = '<div style="font-family:Arial,sans-serif;color:#2B2B2B;max-width:680px;">';
 
     // Header
     h += '<div style="background:#2B2B2B;padding:22px 26px;border-radius:8px 8px 0 0;">';
@@ -645,52 +700,44 @@
     h += '<p style="color:#aaa;margin:5px 0 0;font-size:11px;">Enviado: ' + m.fecha + '</p>';
     h += '</div>';
 
-    // Priority + client data
+    // Priority
     h += '<div style="background:#fff3f3;border:1px solid #f5c6c6;padding:14px 26px;">';
     h += '<span style="background:#c0392b;color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:50px;letter-spacing:.08em;">🔴 PRIORIDAD ALTA — RESPONDER EN 48H</span>';
     h += '</div>';
+
+    // Datos del cliente
     h += '<div style="background:#f9f9f7;border:1px solid #e2ddd8;border-top:none;padding:16px 26px;">';
     h += '<table style="width:100%;border-collapse:collapse;">';
-    [['NOMBRE', m.nombre], ['EMAIL', '<a href="mailto:' + m.email + '" style="color:#7A8F7B;">' + m.email + '</a>'],
-     ['EMPRESA', m.empresa], ['SECTOR', m.sector], ['RETO', m.reto]
-    ].forEach(function(f) {
-      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:100px;white-space:nowrap;">' + f[0] + '</td>';
-      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">' + f[1] + '</td></tr>';
+    [['NOMBRE',m.nombre],['EMAIL','<a href="mailto:'+m.email+'" style="color:#7A8F7B;">'+m.email+'</a>'],
+     ['EMPRESA',m.empresa],['SECTOR',m.sector],['RETO',m.reto]
+    ].forEach(function(f){
+      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:100px;white-space:nowrap;">'+f[0]+'</td>';
+      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">'+f[1]+'</td></tr>';
     });
     h += '</table></div>';
 
-    // Agrupar respuestas por sección para mostrarlas ordenadas
-    var secciones = {};
-    data.respuestas.forEach(function(item) {
-      var key = item.s;
-      if (!secciones[key]) secciones[key] = { titulo: item.sec, items: [] };
-      secciones[key].items.push(item);
-    });
-
-    Object.keys(secciones).sort(function(a,b){ return a-b; }).forEach(function(sKey) {
-      var sec = secciones[sKey];
+    // Secciones y respuestas
+    secciones.forEach(function(sec) {
       h += '<div style="margin-top:16px;">';
       h += '<div style="background:#7A8F7B;padding:9px 26px;">';
-      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">SECCIÓN ' + sKey + ' — ' + sec.titulo.toUpperCase() + '</h3>';
+      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">' + sec.titulo.toUpperCase() + '</h3>';
       h += '</div>';
-      sec.items.forEach(function(item, idx) {
+      sec.cols.forEach(function(c, idx) {
+        var val = data[c[0]];
+        if (val === undefined || val === null) return;
         var bg = idx % 2 === 0 ? '#ffffff' : '#f9f9f7';
-        h += '<div style="background:' + bg + ';border:1px solid #e2ddd8;border-top:none;padding:10px 26px;">';
-        if (item.n !== 'R') {
-          h += '<span style="font-size:10px;font-weight:700;color:#D8B4A0;margin-right:6px;">P' + item.n + '</span>';
-        }
-        h += '<span style="font-size:12px;font-weight:600;color:#2B2B2B;">' + item.p + '</span>';
-        h += '<div style="font-size:13px;color:#555;margin-top:4px;line-height:1.6;">' + answerToStr(item.r) + '</div>';
+        h += '<div style="background:'+bg+';border:1px solid #e2ddd8;border-top:none;padding:10px 26px;">';
+        h += '<span style="font-size:11px;font-weight:700;color:#D8B4A0;margin-right:6px;">' + c[1] + '</span>';
+        h += '<div style="font-size:13px;color:#555;margin-top:3px;line-height:1.6;">' + answerToStr(val) + '</div>';
         h += '</div>';
       });
       h += '</div>';
     });
 
-    // JSON compacto al final (solo para admin)
-    var jsonCompacto = JSON.stringify(data, null, 2);
+    // JSON al final
     h += '<div style="margin-top:20px;background:#1e1e1e;padding:16px 22px;border-radius:0 0 8px 8px;">';
-    h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 JSON COMPACTO — DATOS COMPLETOS</p>';
-    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + jsonCompacto + '</pre>';
+    h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 JSON — DATOS COMPLETOS</p>';
+    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + JSON.stringify(data, null, 2) + '</pre>';
     h += '</div>';
 
     h += '</div>';
@@ -728,51 +775,23 @@
       });
       if (diagError) throw diagError;
 
-      // 2b. INSERT diagnostico_respuestas — una sola fila con todas las respuestas mapeadas
-      var colMap = {
-        '1':  'historia_origen',      '2':  'mision',
-        '3':  'vision',               '4':  'valores',
-        '5':  'publico_objetivo',     '6':  'eslogan',
-        '7':  'anos_operando',        '8':  'cantidad_empleados',
-        '9':  'ubicacion_operacion',  '10': 'mayor_reto',
-        '11': 'objetivos_12_meses',   '12': 'area_mejora',
-        '13': 'urgencia',             '14': 'adquisicion_clientes',
-        '15': 'clientes_nuevos_mes',  '16': 'rango_ingresos',
-        '17': 'proceso_ventas',       '18': 'frecuencia_publicacion',
-        '19': 'presupuesto_marketing','20': 'identidad_visual',
-        '21': 'colores_marca',        '22': 'tipografias',
-        '23': 'tiene_logo',           '24': 'sensaciones_marca',
-        '25': 'marcas_referencia',    '26': 'materiales_marketing',
-        '27': 'tono_comunicacion',    '28': 'plataforma_resultados',
-        '29': 'red_social_crecer',    '30': 'nivel_digitalizacion',
-        '31': 'procesos_automatizar', '32': 'vision_3_anos',
-        '33': 'tipo_apoyo_buscado',   '34': 'informacion_adicional',
-        'R':  'redes_sociales'
-      };
-
-      var fila = {
-        diagnostico_id: diagId,
-        lead_id:        pLeadId  || null,
-        nombre:         pName    || null,
-        email:          pEmail   || null,
-        empresa:        pCompany || null,
-        sector:         pSector  || null
-      };
-
-      (answersData.respuestas || []).forEach(function(item) {
-        var col = colMap[String(item.n)];
-        if (!col) return;
-        if (col === 'redes_sociales') {
-          fila[col] = item.r;  // JSONB
-        } else if (Array.isArray(item.r)) {
-          fila[col] = item.r.join(' · ');
-        } else if (typeof item.r === 'object' && item.r !== null) {
-          fila[col] = JSON.stringify(item.r);
-        } else {
-          fila[col] = String(item.r || '—');
-        }
-      });
-
+      // 2b. INSERT diagnostico_respuestas — fila plana con columnas = nombres de campo del JSON
+      var fila = Object.assign(
+        { diagnostico_id: diagId, lead_id: pLeadId || null,
+          nombre: pName || null, email: pEmail || null,
+          empresa: pCompany || null, sector: pSector || null },
+        (function() {
+          var r = {};
+          Object.keys(answersData).forEach(function(k) {
+            if (k === 'meta') return;  // meta no va a la tabla
+            var v = answersData[k];
+            // redes_sociales ya es objeto (JSONB), el resto se serializa si es objeto
+            r[k] = (k !== 'redes_sociales' && typeof v === 'object' && v !== null)
+                     ? JSON.stringify(v) : v;
+          });
+          return r;
+        })()
+      );
       var { error: rErr } = await _sb.from('diagnostico_respuestas').insert(fila);
       if (rErr) console.warn('diagnostico_respuestas:', rErr);
 
