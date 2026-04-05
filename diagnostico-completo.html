@@ -820,14 +820,15 @@
     var leadId = null;
 
     try {
-      // INSERT en tabla leads
-      var { data, error } = await _sb.from('leads').insert({
+      // INSERT en tabla leads (ID generado localmente)
+      leadId = crypto.randomUUID();
+      var { error } = await _sb.from('leads').insert({
+        id: leadId,
         nombre, apellido, email,
         empresa: negocio, sector, reto
-      }).select('id').single();
+      });
 
       if (error) throw error;
-      leadId = data.id;
 
       // Log de actividad
       await _sb.from('log_actividad').insert({

@@ -707,9 +707,10 @@
     var answersHTML  = buildAnswersHTML(answersData);
 
     // 2. Guardar en Supabase (DB)
-    var diagId = null;
+    var diagId = crypto.randomUUID();  // generamos el ID localmente
     try {
-      var { data: diagData, error: diagError } = await _sb.from('diagnosticos').insert({
+      var { error: diagError } = await _sb.from('diagnosticos').insert({
+        id:              diagId,
         lead_id:         pLeadId  || null,
         nombre:          pName    || null,
         email:           pEmail   || null,
@@ -717,10 +718,9 @@
         sector:          pSector  || null,
         respuestas:      answersData,
         total_preguntas: 34
-      }).select('id').single();
+      });
 
       if (diagError) throw diagError;
-      diagId = diagData ? diagData.id : null;
 
       // INSERT log de actividad
       await _sb.from('log_actividad').insert({
