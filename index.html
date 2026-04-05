@@ -192,10 +192,10 @@
 
     /* ─── AREAS ─── */
     .areas { background: var(--off-white); }
-    .areas-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-    .area-card { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 24px 18px; text-align: center; transition: all 0.25s; }
+    .areas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .area-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 28px 20px; text-align: center; transition: all 0.25s; }
     .area-card:hover { border-color: var(--sage); transform: translateY(-3px); box-shadow: 0 6px 24px rgba(122,143,123,0.15); }
-    .area-card .area-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .area-card .area-icon { font-size: 2rem; margin-bottom: 14px; width: 56px; height: 56px; background: linear-gradient(135deg, #f0f4f0, #e8efe8); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-left: auto; margin-right: auto; }
     .area-card h4 { font-size: 0.82rem; font-weight: 600; color: var(--dark); line-height: 1.4; }
 
     /* ─── TESTIMONIALS ─── */
@@ -509,7 +509,7 @@
     <div class="nav-links">
       <a href="#como-funciona">Cómo funciona</a>
       <a href="#areas">Áreas</a>
-      <a href="cuestionario.html">Cuestionario</a>
+      <a href="#" onclick="openModal(); return false;">Cuestionario</a>
       <a href="#" class="nav-cta" onclick="openModal(); return false;">Solicitar diagnóstico</a>
     </div>
   </div>
@@ -701,7 +701,7 @@
     <nav class="footer-links">
       <a href="#">Inicio</a>
       <a href="#como-funciona">Cómo funciona</a>
-      <a href="cuestionario.html">Cuestionario</a>
+      <a href="#" onclick="openModal(); return false;">Cuestionario</a>
       <a href="#">Privacidad</a>
     </nav>
   </div>
@@ -721,7 +721,7 @@
     <div id="modalForm">
       <div class="modal-badge">🎯 Diagnóstico gratuito · Sin compromiso</div>
       <h2>Solicita tu diagnóstico integral</h2>
-      <p>Completa tus datos y te llevaremos directamente a tu cuestionario personalizado de 10 secciones.</p>
+      <p>Completa tus datos y te llevaremos directamente a tu cuestionario personalizado de 6 secciones.</p>
       <form onsubmit="handleModalSubmit(event)">
         <div class="form-row">
           <div class="form-group">
@@ -780,8 +780,8 @@
     <!-- SUCCESS STATE -->
     <div class="modal-success" id="modalSuccess">
       <div class="ms-icon">✅</div>
-      <h3>¡Registro exitoso!</h3>
-      <p>Te enviamos un correo de confirmación. Haz clic para continuar a tu cuestionario personalizado.</p>
+      <h3>¡Todo listo, ya puedes comenzar!</h3>
+      <p>Tu perfil fue registrado. Tu cuestionario de <strong>34 preguntas en 6 secciones</strong> te espera — toma entre 20 y 30 minutos completarlo a tu ritmo.</p>
       <button class="ms-go-btn" onclick="goToQuestionnaire()">
         <span>Comenzar cuestionario</span>
         <span>→</span>
