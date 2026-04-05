@@ -649,7 +649,6 @@
 
   function buildAnswersHTML(data) {
     var m = data.meta;
-    // Estructura de secciones para visualización en el correo
     var secciones = [
       { titulo: 'Tu Empresa', cols: [
         ['historia_origen','¿Cómo nació tu empresa?'],
@@ -692,55 +691,68 @@
       ]}
     ];
 
-    var h = '<div style="font-family:Arial,sans-serif;color:#2B2B2B;max-width:680px;">';
+    // Email completo — se envía como cuerpo principal (sin variables extra en EmailJS)
+    var h = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/></head><body style="margin:0;padding:0;background:#f0f0f0;font-family:Helvetica Neue,Arial,sans-serif;">';
+    h += '<div style="max-width:640px;margin:28px auto;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid #ddd;">';
 
     // Header
-    h += '<div style="background:#2B2B2B;padding:22px 26px;border-radius:8px 8px 0 0;">';
-    h += '<h2 style="color:#fff;margin:0;font-size:15px;letter-spacing:.04em;">📋 DIAGNÓSTICO COMPLETO · FLEXYSTUDIO</h2>';
-    h += '<p style="color:#aaa;margin:5px 0 0;font-size:11px;">Enviado: ' + m.fecha + '</p>';
+    h += '<div style="background:#2B2B2B;padding:22px 28px;">';
+    h += '<h2 style="color:#fff;margin:0 0 4px;font-size:15px;font-weight:700;letter-spacing:.03em;">📋 Diagnóstico Completo — Nuevo Cliente</h2>';
+    h += '<p style="color:#999;margin:0;font-size:11px;">Recibido: ' + m.fecha + ' · Responder en 48 h hábiles</p>';
     h += '</div>';
 
     // Priority
-    h += '<div style="background:#fff3f3;border:1px solid #f5c6c6;padding:14px 26px;">';
-    h += '<span style="background:#c0392b;color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:50px;letter-spacing:.08em;">🔴 PRIORIDAD ALTA — RESPONDER EN 48H</span>';
+    h += '<div style="background:#fff3f3;border-top:3px solid #e74c3c;padding:11px 28px;text-align:center;">';
+    h += '<span style="background:#e74c3c;color:#fff;font-size:10px;font-weight:700;padding:4px 14px;border-radius:50px;letter-spacing:.08em;">🔴 PRIORIDAD ALTA — RESPONDER EN 48 H</span>';
     h += '</div>';
 
     // Datos del cliente
-    h += '<div style="background:#f9f9f7;border:1px solid #e2ddd8;border-top:none;padding:16px 26px;">';
+    h += '<div style="padding:18px 28px 14px;border-bottom:1px solid #eee;">';
+    h += '<p style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7A8F7B;margin:0 0 12px;">Datos del cliente</p>';
     h += '<table style="width:100%;border-collapse:collapse;">';
-    [['NOMBRE',m.nombre],['EMAIL','<a href="mailto:'+m.email+'" style="color:#7A8F7B;">'+m.email+'</a>'],
-     ['EMPRESA',m.empresa],['SECTOR',m.sector],['RETO',m.reto]
+    [ ['NOMBRE',  m.nombre],
+      ['EMAIL',   '<a href="mailto:' + m.email + '" style="color:#7A8F7B;">' + m.email + '</a>'],
+      ['EMPRESA', m.empresa],
+      ['SECTOR',  m.sector],
+      ['RETO',    m.reto]
     ].forEach(function(f){
-      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:100px;white-space:nowrap;">'+f[0]+'</td>';
-      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">'+f[1]+'</td></tr>';
+      h += '<tr>';
+      h += '<td style="font-size:10px;font-weight:700;color:#aaa;padding:5px 14px 5px 0;width:80px;white-space:nowrap;vertical-align:top;">' + f[0] + '</td>';
+      h += '<td style="font-size:13px;font-weight:600;color:#2B2B2B;padding:5px 0;">' + f[1] + '</td>';
+      h += '</tr>';
     });
     h += '</table></div>';
 
-    // Secciones y respuestas
+    // Respuestas por sección
     secciones.forEach(function(sec) {
-      h += '<div style="margin-top:16px;">';
-      h += '<div style="background:#7A8F7B;padding:9px 26px;">';
-      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">' + sec.titulo.toUpperCase() + '</h3>';
+      h += '<div style="margin-top:0;">';
+      h += '<div style="background:#7A8F7B;padding:8px 28px;">';
+      h += '<p style="color:#fff;margin:0;font-size:11px;font-weight:700;letter-spacing:.06em;">' + sec.titulo.toUpperCase() + '</p>';
       h += '</div>';
       sec.cols.forEach(function(c, idx) {
         var val = data[c[0]];
-        if (val === undefined || val === null) return;
+        if (val === undefined || val === null || val === '—') return;
         var bg = idx % 2 === 0 ? '#ffffff' : '#f9f9f7';
-        h += '<div style="background:'+bg+';border:1px solid #e2ddd8;border-top:none;padding:10px 26px;">';
-        h += '<span style="font-size:11px;font-weight:700;color:#D8B4A0;margin-right:6px;">' + c[1] + '</span>';
-        h += '<div style="font-size:13px;color:#555;margin-top:3px;line-height:1.6;">' + answerToStr(val) + '</div>';
+        h += '<div style="background:' + bg + ';border-bottom:1px solid #eee;padding:9px 28px;">';
+        h += '<p style="font-size:10px;font-weight:700;color:#D8B4A0;margin:0 0 2px;letter-spacing:.04em;">' + c[1].toUpperCase() + '</p>';
+        h += '<p style="font-size:13px;color:#333;margin:0;line-height:1.6;">' + answerToStr(val) + '</p>';
         h += '</div>';
       });
       h += '</div>';
     });
 
-    // JSON al final
-    h += '<div style="margin-top:20px;background:#1e1e1e;padding:16px 22px;border-radius:0 0 8px 8px;">';
+    // JSON compacto
+    h += '<div style="background:#1e1e1e;padding:16px 22px;">';
     h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 JSON — DATOS COMPLETOS</p>';
-    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + JSON.stringify(data, null, 2) + '</pre>';
+    h += '<pre style="color:#a8d5a2;font-size:9px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;font-family:Courier New,monospace;">' + JSON.stringify(data, null, 2) + '</pre>';
     h += '</div>';
 
+    // Footer
+    h += '<div style="background:#F9F9F7;padding:13px 28px;border-top:1px solid #eee;">';
+    h += '<p style="font-size:11px;color:#bbb;margin:0;">Enviado automáticamente · <span style="color:#7A8F7B;font-weight:700;">FlexyStudio Diagnóstico+</span></p>';
     h += '</div>';
+
+    h += '</div></body></html>';
     return h;
   }
 
