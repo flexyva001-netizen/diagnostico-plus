@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cuestionario de Diagnóstico Integral — FlexiStudio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <!-- EmailJS — envío de correos al completar el cuestionario -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    (function(){
+      emailjs.init({ publicKey: "TU_PUBLIC_KEY_AQUI" }); // ⚙️ Reemplaza con tu Public Key de emailjs.com
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream:      #F4EFEA;
+      --off-white:  #F9F9F7;
+      --white:      #FFFFFF;
+      --sage:       #7A8F7B;
+      --sage-dark:  #5f7260;
+      --sage-light: #E6ECE8;
+      --rose:       #D8B4A0;
+      --rose-light: #f0ddd3;
+      --dark:       #2B2B2B;
+      --mid:        #333333;
+      --muted:      #6b6b6b;
+      --border:     #e2ddd8;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--off-white);
+      color: var(--dark);
+      line-height: 1.7;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--off-white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%;
+      position: sticky; top: 0; z-index: 50;
+    }
+    .nav-inner {
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .logo { font-weight: 700; font-size: 1.05rem; letter-spacing: 0.06em; color: var(--dark); text-decoration: none; }
+    .logo span { color: var(--sage); }
+    .nav-back {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.8rem; font-weight: 600; color: var(--muted);
+      text-decoration: none; transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--sage); }
+
+    /* ── HEADER BANNER ── */
+    .q-header {
+      background: var(--cream);
+      padding: 48px 5% 40px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .q-header::before {
+      content: ''; position: absolute; top: -80px; right: -80px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: var(--rose-light); opacity: 0.4; pointer-events: none;
+    }
+    .q-header::after {
+      content: ''; position: absolute; bottom: -60px; left: -60px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: var(--sage-light); opacity: 0.5; pointer-events: none;
+    }
+    .q-badge {
+      display: inline-block; background: var(--rose-light); color: #a0715e;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 5px 16px; border-radius: 50px; margin-bottom: 18px;
+      position: relative;
+    }
+    .q-header h1 {
+      font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 700;
+      color: var(--dark); margin-bottom: 10px; position: relative;
+    }
+    .q-header h1 em { font-style: normal; color: var(--sage); }
+    .q-header p { font-size: 0.92rem; color: var(--muted); max-width: 500px; margin: 0 auto; position: relative; }
+    .header-meta {
+      display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;
+      margin-top: 20px; position: relative;
+    }
+    .meta-pill {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.76rem; font-weight: 600; color: var(--muted);
+      background: var(--white); border: 1px solid var(--border);
+      padding: 5px 14px; border-radius: 50px;
+    }
+
+    /* ── MAIN WRAP ── */
+    .q-main { max-width: 820px; margin: 0 auto; padding: 40px 5% 80px; }
+
+    /* ── WELCOME CARD ── */
+    .q-welcome {
+      background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%);
+      border-radius: 12px; padding: 26px 30px;
+      display: flex; align-items: center; gap: 18px;
+      margin-bottom: 32px; color: var(--white);
+    }
+    .w-icon { font-size: 2rem; flex-shrink: 0; }
+    .q-welcome h4 { font-size: 0.98rem; font-weight: 700; margin-bottom: 4px; }
+    .q-welcome p { font-size: 0.82rem; opacity: 0.85; line-height: 1.6; }
+
+    /* ── INSTRUCTIONS ── */
+    .q-instructions {
+      background: var(--white); border: 1px solid var(--border);
+      border-left: 4px solid var(--sage); border-radius: 8px;
+      padding: 20px 24px; margin-bottom: 30px;
+    }
+    .q-instructions h4 { font-size: 0.87rem; font-weight: 700; color: var(--dark); margin-bottom: 10px; }
+    .q-instructions p { font-size: 0.82rem; color: var(--muted); line-height: 1.7; margin-bottom: 4px; }
+    .q-instructions p:last-child { margin-bottom: 0; }
+
+    /* ── PROGRESS ── */
+    .progress-wrap { margin-bottom: 28px; }
+    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .progress-label { font-size: 0.78rem; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .progress-pct { font-size: 0.88rem; font-weight: 700; color: var(--sage); }
+    .progress-bar-bg { background: var(--sage-light); border-radius: 50px; height: 6px; overflow: hidden; }
+    .progress-bar-fill { background: var(--sage); height: 100%; border-radius: 50px; transition: width 0.45s ease; width: 0%; }
+
+    /* ── SECTION TABS ── */
+    .section-tabs { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 26px; }
+    .section-tab {
+      padding: 5px 13px; border-radius: 50px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--white); color: var(--muted); transition: all 0.2s;
+    }
+    .section-tab.active { background: var(--sage); color: var(--white); border-color: var(--sage); }
+    .section-tab.done { background: var(--sage-light); color: var(--sage-dark); border-color: var(--sage-light); }
+    .section-tab.done::before { content: '✓ '; }
+
+    /* ── Q SECTION ── */
+    .q-section { display: none; }
+    .q-section.active { display: block; animation: fadeSlide 0.3s ease; }
+    @keyframes fadeSlide { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .q-section-header {
+      background: var(--white); border-radius: 10px 10px 0 0;
+      border: 1px solid var(--border); border-bottom: none;
+      padding: 20px 28px; display: flex; align-items: center; gap: 14px;
+    }
+    .q-section-icon { width: 44px; height: 44px; background: var(--sage-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+    .q-section-header h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+    .q-section-header p { font-size: 0.78rem; color: var(--muted); }
+
+    .q-body { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 10px 10px; padding: 28px; }
+
+    /* ── QUESTIONS ── */
+    .q-item { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid var(--sage-light); }
+    .q-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .q-label { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 10px; }
+    .q-num { min-width: 27px; height: 27px; background: var(--rose-light); color: #a0715e; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+    .q-label-text { font-size: 0.93rem; font-weight: 600; color: var(--dark); line-height: 1.5; }
+    .q-hint { font-size: 0.79rem; color: var(--muted); font-style: italic; margin-bottom: 12px; padding-left: 38px; line-height: 1.6; }
+    .q-multi-note {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.74rem; font-weight: 600; color: var(--sage-dark);
+      background: var(--sage-light); padding: 4px 12px; border-radius: 50px;
+      margin-bottom: 12px; margin-left: 38px;
+    }
+
+    /* ── FORM CONTROLS ── */
+    textarea {
+      width: 100%; min-height: 105px; padding: 12px 15px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.86rem; color: var(--dark);
+      background: var(--off-white); resize: vertical; transition: border-color 0.2s; outline: none; line-height: 1.6;
+    }
+    textarea:focus { border-color: var(--sage); background: var(--white); }
+    textarea::placeholder { color: #b5ada8; }
+
+    .radio-group, .checkbox-group { display: flex; flex-direction: column; gap: 9px; }
+    .radio-option, .checkbox-option {
+      display: flex; align-items: center; gap: 11px;
+      padding: 10px 15px; border: 1.5px solid var(--border);
+      border-radius: 6px; cursor: pointer; transition: all 0.2s; background: var(--off-white);
+    }
+    .radio-option:hover, .checkbox-option:hover { border-color: var(--sage); background: var(--white); }
+    .radio-option input, .checkbox-option input { display: none; }
+    .radio-option.selected, .checkbox-option.selected { border-color: var(--sage); background: #eef2ee; }
+    .radio-custom, .check-custom { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .check-custom { border-radius: 4px; }
+    .radio-option.selected .radio-custom { border-color: var(--sage); background: var(--sage); box-shadow: inset 0 0 0 3px var(--white); }
+    .checkbox-option.selected .check-custom { border-color: var(--sage); background: var(--sage); color: var(--white); font-size: 0.7rem; }
+    .radio-option label, .checkbox-option label { font-size: 0.86rem; color: var(--mid); cursor: pointer; line-height: 1.5; }
+
+    .input-field {
+      width: 100%; padding: 12px 15px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.86rem; color: var(--dark);
+      background: var(--off-white); transition: border-color 0.2s; outline: none;
+    }
+    .input-field:focus { border-color: var(--sage); background: var(--white); }
+    .input-field::placeholder { color: #b5ada8; }
+
+    .social-grid { display: grid; grid-template-columns: auto 1fr; gap: 9px 14px; align-items: center; }
+    .social-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); white-space: nowrap; }
+    .color-table { display: grid; grid-template-columns: 150px 1fr; gap: 9px 14px; align-items: center; }
+    .color-label { font-size: 0.83rem; font-weight: 600; color: var(--muted); }
+
+    /* ── NAVIGATION ── */
+    .q-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; gap: 12px; }
+    .btn-nav {
+      padding: 12px 24px; border-radius: 4px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.83rem;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.25s; border: none;
+    }
+    .btn-prev { background: var(--white); color: var(--muted); border: 1.5px solid var(--border) !important; }
+    .btn-prev:hover { border-color: var(--sage) !important; color: var(--sage); }
+    .btn-next { background: var(--sage); color: var(--white); margin-left: auto; }
+    .btn-next:hover { background: var(--sage-dark); }
+    .btn-submit-q {
+      width: 100%; padding: 16px; margin-top: 20px;
+      background: var(--dark); color: var(--white);
+      border: none; border-radius: 6px; cursor: pointer;
+      font-family: 'Montserrat', sans-serif; font-size: 0.94rem;
+      font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      transition: background 0.25s;
+    }
+    .btn-submit-q:hover { background: #1a1a1a; }
+    .btn-submit-q:disabled { background: #999; cursor: not-allowed; }
+
+    /* ── SUCCESS STATE ── */
+    .q-success {
+      display: none; text-align: center; padding: 70px 40px;
+      background: var(--white); border-radius: 12px; border: 1px solid var(--border);
+    }
+    .q-success.show { display: block; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .success-circle {
+      width: 90px; height: 90px; background: var(--sage-light);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; margin: 0 auto 24px;
+    }
+    .q-success h2 { font-size: 1.9rem; font-weight: 700; color: var(--dark); margin-bottom: 14px; }
+    .q-success p { font-size: 0.95rem; color: var(--muted); max-width: 460px; margin: 0 auto 10px; line-height: 1.8; }
+    .success-pills { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin: 28px 0; }
+    .s-pill { display: flex; align-items: center; gap: 6px; background: var(--sage-light); padding: 9px 18px; border-radius: 50px; font-size: 0.82rem; font-weight: 600; color: var(--sage-dark); }
+    .redirect-note { font-size: 0.78rem; color: #bbb; margin-top: 6px; }
+    .btn-home {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--sage); color: var(--white);
+      padding: 14px 32px; border-radius: 4px;
+      font-family: 'Montserrat', sans-serif; font-size: 0.88rem;
+      font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: background 0.25s; margin-top: 10px;
+    }
+    .btn-home:hover { background: var(--sage-dark); }
+
+    /* ── FOOTER ── */
+    footer { background: var(--dark); color: #888; padding: 28px 5%; text-align: center; }
+    .footer-logo { font-weight: 700; font-size: 1rem; color: var(--white); letter-spacing: 0.06em; display: inline-block; margin-bottom: 6px; }
+    .footer-logo span { color: var(--sage); }
+    footer p { font-size: 0.75rem; color: #555; }
+
+    @media (max-width: 700px) {
+      .q-welcome { flex-direction: column; text-align: center; }
+      .social-grid { grid-template-columns: 1fr; }
+      .color-table { grid-template-columns: 1fr; }
+      .q-body { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="diagnostico-completo.html" class="logo">Flexy<span>Studio</span></a>
+    <a href="diagnostico-completo.html" class="nav-back">← Volver al inicio</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<div class="q-header">
+  <div class="q-badge">📋 Cuestionario de Diagnóstico</div>
+  <h1>Diagnóstico Integral <em>de Negocio</em></h1>
+  <p>Responde con honestidad — no hay respuestas correctas o incorrectas. Buscamos entender tu realidad.</p>
+  <div class="header-meta">
+    <div class="meta-pill">⏱ 20–30 minutos</div>
+    <div class="meta-pill">📌 10 secciones</div>
+    <div class="meta-pill">🔒 100% confidencial</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="q-main">
+
+  <!-- Welcome -->
+  <div class="q-welcome">
+    <div class="w-icon">👋</div>
+    <div>
+      <h4 id="welcomeName">¡Bienvenido/a! Tu diagnóstico está listo.</h4>
+      <p>Completa las 10 secciones. Puedes navegar entre ellas usando las pestañas o los botones de navegación.</p>
+    </div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="q-instructions">
+    <h4>📋 Instrucciones</h4>
+    <p>🔓 <strong>Preguntas de texto:</strong> Escribe tu respuesta con tus propias palabras en el campo indicado.</p>
+    <p>☑ <strong>Preguntas de selección:</strong> Elige la opción que mejor te represente. En las preguntas marcadas con <strong>☑ Múltiple</strong> puedes seleccionar más de una opción.</p>
+    <p>🔒 Tus respuestas son <strong>confidenciales</strong> y únicamente se usarán para tu propuesta personalizada.</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-label" id="progressLabel">Sección 1 de 10</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="section-tabs" id="sectionTabs">
+    <div class="section-tab active" onclick="goTo(0)">1. Identidad</div>
+    <div class="section-tab" onclick="goTo(1)">2. Negocio</div>
+    <div class="section-tab" onclick="goTo(2)">3. Desafíos</div>
+    <div class="section-tab" onclick="goTo(3)">4. Clientes</div>
+    <div class="section-tab" onclick="goTo(4)">5. Ventas</div>
+    <div class="section-tab" onclick="goTo(5)">6. Marketing</div>
+    <div class="section-tab" onclick="goTo(6)">7. Branding</div>
+    <div class="section-tab" onclick="goTo(7)">8. Redes</div>
+    <div class="section-tab" onclick="goTo(8)">9. Tecnología</div>
+    <div class="section-tab" onclick="goTo(9)">10. Visión</div>
+  </div>
+
+  <!-- ══ SEC 1 ══ -->
+  <div class="q-section active" id="sec-0">
+    <div class="q-section-header"><div class="q-section-icon">🏛️</div><div><h3>Sección 1 — Identidad e Historia de la Empresa</h3><p>Cuéntanos quiénes son y de dónde vienen</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">1</span><span class="q-label-text">¿Cómo nació tu empresa? Cuéntanos la historia de su origen.</span></div><p class="q-hint">¿Qué situación o problema detectaste? ¿Qué te motivó a emprender? ¿Cómo comenzó todo...?</p><textarea placeholder="Escribe aquí la historia de tu empresa..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">2</span><span class="q-label-text">¿Cuál es la misión de tu empresa? (el propósito central de por qué existe)</span></div><p class="q-hint">Ej: Ayudamos a pequeñas empresas a crecer digitalmente con estrategias accesibles y medibles...</p><textarea placeholder="El propósito central de tu empresa..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">3</span><span class="q-label-text">¿Cuál es la visión de tu empresa? (dónde quieren estar en el futuro)</span></div><p class="q-hint">Ej: Ser el aliado estratégico de referencia para pymes latinoamericanas en 2030...</p><textarea placeholder="¿Dónde quieren estar en el futuro?..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">4</span><span class="q-label-text">¿Cuáles son los valores que guían tu empresa y la forma en que trabajan?</span></div><p class="q-hint">Ej: Integridad, innovación, cercanía, resultados medibles, trabajo en equipo...</p><textarea placeholder="Los valores que definen cómo trabajan..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">5</span><span class="q-label-text">¿Existe una historia, momento o logro del que estés especialmente orgulloso/a?</span></div><p class="q-hint">Un cliente transformado, un proyecto clave, un reconocimiento, un hito importante...</p><textarea placeholder="Comparte ese momento o logro..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">6</span><span class="q-label-text">¿A qué público o tipo de persona se dirige principalmente tu negocio?</span></div><p class="q-hint">Describe su perfil: edad, ocupación, situación de vida, dolores y aspiraciones...</p><textarea placeholder="Describe tu cliente ideal..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">7</span><span class="q-label-text">¿Qué frase o eslogan representa mejor a tu marca?</span></div><p class="q-hint">Si no tienes eslogan aún, ¿qué frase te gustaría que la gente asociara a tu negocio?</p><textarea placeholder="Tu eslogan o frase de marca..." style="min-height:70px;"></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-next" onclick="next(0)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 2 ══ -->
+  <div class="q-section" id="sec-1">
+    <div class="q-section-header"><div class="q-section-icon">🏢</div><div><h3>Sección 2 — Datos Generales del Negocio</h3><p>Información básica de tu empresa</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">8</span><span class="q-label-text">¿Cuál es el nombre de tu empresa o negocio?</span></div><p class="q-hint">Nombre legal y nombre comercial si son diferentes...</p><input type="text" class="input-field" placeholder="Nombre de tu empresa..."/></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">9</span><span class="q-label-text">¿Cuántos años lleva operando tu negocio?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Menos de 1 año</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>1 – 3 años</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>3 – 5 años</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 5 años</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">10</span><span class="q-label-text">¿En qué sector o industria se encuentra tu negocio?</span></div><p class="q-hint">Ej: Tecnología, Salud, Retail, Servicios profesionales, Educación, Bienestar...</p><input type="text" class="input-field" placeholder="Sector de tu negocio..."/></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">11</span><span class="q-label-text">¿Cuántas personas trabajan actualmente en tu empresa?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Solo yo (solopreneur)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>2 – 5 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>6 – 20 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>21 – 50 personas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 50 personas</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">12</span><span class="q-label-text">¿Dónde opera principalmente tu negocio?</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Local / una ciudad</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Regional / varios estados o provincias</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Nacional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Internacional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>100% digital / remoto</label></div></div></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(1)">← Anterior</button><button class="btn-nav btn-next" onclick="next(1)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 3 ══ -->
+  <div class="q-section" id="sec-2">
+    <div class="q-section-header"><div class="q-section-icon">🎯</div><div><h3>Sección 3 — Situación Actual y Desafíos</h3><p>Tu realidad hoy y hacia dónde quieres ir</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">13</span><span class="q-label-text">¿Cuál es el mayor reto o problema que enfrenta tu negocio hoy?</span></div><p class="q-hint">Describe el reto con el mayor detalle posible...</p><textarea placeholder="Describe tu mayor reto actual..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">14</span><span class="q-label-text">¿Cuáles son los 3 objetivos más importantes para los próximos 12 meses?</span></div><div style="display:flex;flex-direction:column;gap:10px;"><input type="text" class="input-field" placeholder="Objetivo 1..."/><input type="text" class="input-field" placeholder="Objetivo 2..."/><input type="text" class="input-field" placeholder="Objetivo 3..."/></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">15</span><span class="q-label-text">¿En qué área hay mayor oportunidad de mejora?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Ventas y generación de ingresos</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Marketing y visibilidad</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Operaciones y procesos internos</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Tecnología y herramientas</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Equipo y talento humano</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Finanzas y rentabilidad</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Identidad de marca y comunicación</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Atención al cliente / retención</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">16</span><span class="q-label-text">¿Qué has intentado antes para resolver estos problemas y cuál fue el resultado?</span></div><p class="q-hint">Describe brevemente las soluciones que ya probaste y qué funcionó o no...</p><textarea placeholder="Soluciones previas y resultados..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">17</span><span class="q-label-text">¿Cuán urgente es resolver este problema para ti?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No es urgente, es a largo plazo</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Moderadamente urgente (en los próximos 6 meses)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Muy urgente (en los próximos 1 – 3 meses)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Crisis, necesito solución inmediata</label></div></div></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(2)">← Anterior</button><button class="btn-nav btn-next" onclick="next(2)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 4 ══ -->
+  <div class="q-section" id="sec-3">
+    <div class="q-section-header"><div class="q-section-icon">👥</div><div><h3>Sección 4 — Clientes y Mercado</h3><p>Tu audiencia, canales de adquisición y competencia</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">18</span><span class="q-label-text">¿Cómo adquieres actualmente la mayoría de tus clientes?</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Referidos / boca a boca</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Redes sociales</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Publicidad pagada (Meta Ads, Google Ads…)</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>SEO / contenido orgánico</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Networking y eventos</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Llamadas en frío / prospección directa</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Otro</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">19</span><span class="q-label-text">¿Cuántos clientes nuevos incorporas por mes aproximadamente?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Menos de 5</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>5 – 15</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>16 – 50</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de 50</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No llevo ese registro</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">20</span><span class="q-label-text">¿Cuál es el principal motivo por el que pierdes clientes o prospectos?</span></div><p class="q-hint">Precio, competencia, falta de seguimiento, propuesta poco clara...</p><textarea placeholder="¿Por qué crees que pierdes clientes?..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">21</span><span class="q-label-text">¿Cuál es tu propuesta de valor única frente a la competencia?</span></div><p class="q-hint">Describe qué te hace diferente y por qué un cliente debería elegirte a ti...</p><textarea placeholder="Tu propuesta de valor única..."></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(3)">← Anterior</button><button class="btn-nav btn-next" onclick="next(3)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 5 ══ -->
+  <div class="q-section" id="sec-4">
+    <div class="q-section-header"><div class="q-section-icon">💰</div><div><h3>Sección 5 — Ventas e Ingresos</h3><p>Proceso comercial, conversión y métricas clave</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">22</span><span class="q-label-text">¿Cuál es el rango aproximado de tus ingresos mensuales actuales?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Menos de $1,000</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>$1,000 – $5,000</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>$5,001 – $15,000</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>$15,001 – $50,000</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de $50,000</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Prefiero no responder</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">23</span><span class="q-label-text">¿Tienes un proceso de ventas documentado o estructurado?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Sí, bien definido y lo seguimos consistentemente</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Parcialmente, hay algunos pasos definidos</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No, cada venta es diferente</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Estamos en proceso de construirlo</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">24</span><span class="q-label-text">¿Qué herramientas de ventas o CRM utilizas actualmente?</span></div><p class="q-hint">Ej: HubSpot, Salesforce, hojas de cálculo, WhatsApp Business, ninguna...</p><textarea placeholder="Herramientas de ventas que usas..." style="min-height:80px;"></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(4)">← Anterior</button><button class="btn-nav btn-next" onclick="next(4)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 6 ══ -->
+  <div class="q-section" id="sec-5">
+    <div class="q-section-header"><div class="q-section-icon">📣</div><div><h3>Sección 6 — Marketing y Presencia Digital</h3><p>Canales, contenido y presupuesto de marketing</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">25</span><span class="q-label-text">¿Con qué frecuencia publicas contenido en tus canales digitales?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Diariamente</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>3 – 5 veces por semana</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>1 – 2 veces por semana</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>De forma irregular / esporádica</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No publico actualmente</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">26</span><span class="q-label-text">¿Qué tipo de contenido genera más engagement o resultados para ti?</span></div><p class="q-hint">Videos, reels, artículos, casos de éxito, testimonios, infografías, stories...</p><textarea placeholder="Describe qué contenido te funciona mejor..." style="min-height:80px;"></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">27</span><span class="q-label-text">¿Tienes un presupuesto asignado para marketing?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No tengo presupuesto de marketing</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Menos de $500 / mes</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>$500 – $2,000 / mes</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>$2,001 – $5,000 / mes</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Más de $5,000 / mes</label></div></div></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(5)">← Anterior</button><button class="btn-nav btn-next" onclick="next(5)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 7 ══ -->
+  <div class="q-section" id="sec-6">
+    <div class="q-section-header"><div class="q-section-icon">🎨</div><div><h3>Sección 7 — Identidad Visual y Branding</h3><p>Diseño, colores, estilo y materiales existentes</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">28</span><span class="q-label-text">¿Tienes actualmente una identidad visual definida para tu marca?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Sí, tengo manual de marca completo (logo, colores, tipografías)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Tengo logo y algunos colores, pero no es formal</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Tengo algo básico hecho por mí o informal</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No tengo nada definido aún</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Estoy en proceso de crearlo</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">29</span><span class="q-label-text">¿Cuáles son los colores de tu marca? Indícalos por nombre o código hexadecimal (#).</span></div><div class="color-table"><div class="color-label">Color principal</div><input type="text" class="input-field" placeholder="Ej: Azul marino #1B4F8A"/><div class="color-label">Color secundario</div><input type="text" class="input-field" placeholder="Ej: Dorado #F0A500"/><div class="color-label">Color de acento</div><input type="text" class="input-field" placeholder="Ej: Blanco, negro u otro"/></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">30</span><span class="q-label-text">¿Qué tipografías (fuentes de letra) utiliza tu marca actualmente?</span></div><p class="q-hint">Ej: Montserrat para títulos, Open Sans para cuerpo de texto...</p><textarea placeholder="Tipografías o descripción de tu estilo tipográfico..." style="min-height:80px;"></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">31</span><span class="q-label-text">¿Tienes logo actualmente? ¿En qué formatos lo tienes disponible?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Sí, en vectorial (AI, EPS, SVG)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Sí, solo en PNG o JPG</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Sí, pero necesita rediseño / actualización</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>No tengo logo aún</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Estoy en proceso de diseñar uno</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">32</span><span class="q-label-text">¿Qué sensaciones o emociones quieres que transmita tu marca visualmente?</span></div><p class="q-hint">Ej: confianza, modernidad, cercanía, lujo, energía, seriedad, creatividad...</p><textarea placeholder="Emociones que debe transmitir tu marca..." style="min-height:80px;"></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">33</span><span class="q-label-text">¿Hay marcas o empresas cuyo estilo visual te guste o inspire?</span></div><p class="q-hint">Menciona 2 o 3 marcas y qué es lo que te gusta de su diseño o comunicación visual...</p><textarea placeholder="Marcas que te inspiran y por qué..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">34</span><span class="q-label-text">¿Tienes materiales de marketing actuales? (catálogos, flyers, presentaciones, tarjetas…)</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Sí, tengo materiales actualizados y coherentes</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Tengo algunos pero están desactualizados</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Tengo materiales pero no son consistentes entre sí</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>No tengo materiales de marketing</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Todo es digital, no tengo materiales físicos</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">35</span><span class="q-label-text">¿Qué palabras describen mejor el tono de comunicación que usas o deseas usar?</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Formal y profesional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Cercano y conversacional</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Inspirador y motivador</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Técnico y especializado</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Divertido y desenfadado</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Empático y humano</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Directo y sin rodeos</label></div></div></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(6)">← Anterior</button><button class="btn-nav btn-next" onclick="next(6)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 8 ══ -->
+  <div class="q-section" id="sec-7">
+    <div class="q-section-header"><div class="q-section-icon">📱</div><div><h3>Sección 8 — Redes Sociales y Presencia en Línea</h3><p>Tus perfiles activos para que podamos consultarlos y analizarlos</p></div></div>
+    <div class="q-body">
+      <div class="q-item">
+        <p style="font-size:0.83rem;color:var(--muted);margin-bottom:16px;line-height:1.7;">Completa los links o usuarios de cada plataforma donde tengas presencia. Deja en blanco las que no apliquen.</p>
+        <div class="social-grid">
+          <div class="social-label">🌐 Sitio Web</div><input type="url" class="input-field" placeholder="https://www.tunegocio.com"/>
+          <div class="social-label">📘 Facebook</div><input type="text" class="input-field" placeholder="@tupagina o https://facebook.com/..."/>
+          <div class="social-label">📸 Instagram</div><input type="text" class="input-field" placeholder="@tuusuario"/>
+          <div class="social-label">💼 LinkedIn</div><input type="url" class="input-field" placeholder="https://linkedin.com/company/..."/>
+          <div class="social-label">🎵 TikTok</div><input type="text" class="input-field" placeholder="@tuusuario"/>
+          <div class="social-label">▶️ YouTube</div><input type="text" class="input-field" placeholder="https://youtube.com/@tucanal"/>
+          <div class="social-label">🐦 X / Twitter</div><input type="text" class="input-field" placeholder="@tuusuario"/>
+          <div class="social-label">📌 Pinterest</div><input type="text" class="input-field" placeholder="@tuusuario"/>
+          <div class="social-label">💬 WhatsApp Biz</div><input type="text" class="input-field" placeholder="+1 (000) 000-0000"/>
+          <div class="social-label">📧 Email Mkt</div><input type="email" class="input-field" placeholder="newsletter@tunegocio.com"/>
+        </div>
+      </div>
+      <div class="q-item"><div class="q-label"><span class="q-num">36</span><span class="q-label-text">¿En cuál plataforma obtienes actualmente los mejores resultados?</span></div><p class="q-hint">¿Qué plataforma te genera más clientes, engagement o ventas? ¿Por qué crees que es así?</p><textarea placeholder="Tu plataforma más efectiva y por qué..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">37</span><span class="q-label-text">¿Hay alguna red social en la que quieras crecer o mejorar tu presencia?</span></div><p class="q-hint">¿Cuál y por qué? ¿Qué te ha impedido crecer ahí hasta ahora?</p><textarea placeholder="Red social que quieres desarrollar y por qué..."></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(7)">← Anterior</button><button class="btn-nav btn-next" onclick="next(7)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 9 ══ -->
+  <div class="q-section" id="sec-8">
+    <div class="q-section-header"><div class="q-section-icon">⚙️</div><div><h3>Sección 9 — Tecnología y Operaciones</h3><p>Herramientas, automatizaciones y procesos internos</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">38</span><span class="q-label-text">¿Cuál es el nivel de digitalización de tus operaciones actuales?</span></div><div class="radio-group"><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Casi todo es manual (papel, hojas de cálculo)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Algunas herramientas básicas (Google Workspace, etc.)</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Herramientas especializadas por área</label></div><div class="radio-option" onclick="sel(this)"><input type="radio"/><div class="radio-custom"></div><label>Alta digitalización e integración de sistemas</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">39</span><span class="q-label-text">¿Cuáles son las 3 herramientas digitales principales que usas en tu negocio?</span></div><div style="display:flex;flex-direction:column;gap:10px;"><input type="text" class="input-field" placeholder="Herramienta 1..."/><input type="text" class="input-field" placeholder="Herramienta 2..."/><input type="text" class="input-field" placeholder="Herramienta 3..."/></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">40</span><span class="q-label-text">¿Qué procesos internos te consumen más tiempo y podrían automatizarse?</span></div><p class="q-hint">Describe las tareas repetitivas que más tiempo te quitan cada semana...</p><textarea placeholder="Tareas repetitivas que más tiempo consumen..."></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(8)">← Anterior</button><button class="btn-nav btn-next" onclick="next(8)">Siguiente →</button></div>
+  </div>
+
+  <!-- ══ SEC 10 ══ -->
+  <div class="q-section" id="sec-9">
+    <div class="q-section-header"><div class="q-section-icon">🚀</div><div><h3>Sección 10 — Visión y Colaboración</h3><p>Lo que buscas y cómo quieres trabajar juntos</p></div></div>
+    <div class="q-body">
+      <div class="q-item"><div class="q-label"><span class="q-num">41</span><span class="q-label-text">¿Cómo visualizas tu negocio en 3 años? ¿Qué habrá cambiado?</span></div><p class="q-hint">Describe tu visión de éxito: ingresos, equipo, impacto, mercados...</p><textarea placeholder="Tu visión a 3 años..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">42</span><span class="q-label-text">¿Qué tipo de apoyo externo estás buscando en este momento?</span></div><div class="q-multi-note">☑ Puedes seleccionar más de una opción</div><div class="checkbox-group"><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Consultoría estratégica</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Implementación y ejecución</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Mentoría y acompañamiento</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Capacitación y formación del equipo</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Tecnología y automatización</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Marketing y comunicación</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>Diseño e identidad de marca</label></div><div class="checkbox-option" onclick="chk(this)"><input type="checkbox"/><div class="check-custom">✓</div><label>No estoy seguro todavía</label></div></div></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">43</span><span class="q-label-text">¿Cuál es tu mayor preocupación al contratar un servicio externo?</span></div><p class="q-hint">Precio, confianza, resultados medibles, tiempo de implementación, experiencias previas...</p><textarea placeholder="Tu mayor preocupación o duda al contratar..."></textarea></div>
+      <div class="q-item"><div class="q-label"><span class="q-num">44</span><span class="q-label-text">¿Hay algo más que consideres importante compartir sobre tu negocio o situación?</span></div><p class="q-hint">Este es un espacio abierto — comparte todo lo que creas relevante...</p><textarea placeholder="Espacio libre para todo lo que quieras compartir..." style="min-height:130px;"></textarea></div>
+    </div>
+    <div class="q-nav"><button class="btn-nav btn-prev" onclick="prev(9)">← Anterior</button></div>
+    <button class="btn-submit-q" id="submitBtn" onclick="submitQ()">🎉 Enviar diagnóstico completo</button>
+    <p style="text-align:center;font-size:0.76rem;color:var(--muted);margin-top:14px;">🔒 Confidencial · Propuesta personalizada en 48 horas hábiles</p>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="q-success" id="qSuccess">
+    <div class="success-circle">🎉</div>
+    <h2>¡Gracias, <span id="successName">!</span></h2>
+    <p>Hemos recibido tu diagnóstico completo. El equipo de <strong>FlexiStudio</strong> lo revisará con cuidado y se pondrá en contacto contigo en un plazo de <strong>48 horas hábiles</strong> con una propuesta 100% personalizada a tu negocio.</p>
+    <div class="success-pills">
+      <div class="s-pill">✓ 44 preguntas completadas</div>
+      <div class="s-pill">⏱ Propuesta en 48h</div>
+      <div class="s-pill">🔒 Confidencial</div>
+    </div>
+    <!-- Botón descarga JSON — aparece automáticamente al enviar -->
+    <a id="downloadJSON" href="#" download style="display:none;margin:18px auto 4px;padding:12px 28px;background:#2B2B2B;color:#fff;border-radius:6px;font-size:0.82rem;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;align-items:center;gap:8px;">📄 Descargar respuestas (JSON)</a>
+    <p id="downloadNote" style="display:none;font-size:0.74rem;color:var(--muted);margin-bottom:18px;">Archivo con todas tus respuestas · útil como respaldo</p>
+    <a href="diagnostico-completo.html" class="btn-home">← Volver al inicio</a>
+    <p class="redirect-note" id="redirectNote">Serás redirigido automáticamente en <span id="countdown">8</span> segundos...</p>
+  </div>
+
+</div><!-- end q-main -->
+
+<footer>
+  <div class="footer-logo">Flexy<span>Studio</span></div>
+  <p>© 2026 FlexiStudio. Todos los derechos reservados.</p>
+</footer>
+
+<script>
+  /* ══ CONFIGURACIÓN EMAILJS ═══════════════════════════════════
+     ⚙️  Reemplaza estos IDs con los de tu cuenta en emailjs.com
+  ═══════════════════════════════════════════════════════════════ */
+  var EMAILJS_SERVICE_ID       = 'TU_SERVICE_ID';
+  var EMAILJS_TEMPLATE_CLIENTE = 'TU_TEMPLATE_CLIENTE';
+  var EMAILJS_TEMPLATE_ADMIN   = 'TU_TEMPLATE_ADMIN';
+
+  var cur = 0;
+  var done = new Set();
+
+  // ── URL Params ──────────────────────────────────────────────
+  function getParam(k) { return new URLSearchParams(window.location.search).get(k) || ''; }
+  var pName    = getParam('n');
+  var pEmail   = getParam('e');
+  var pCompany = getParam('c');
+  var pSector  = getParam('s');
+  var pReto    = getParam('r');
+
+  // Personalizar bienvenida
+  if (pName) {
+    document.getElementById('welcomeName').textContent =
+      '¡Bienvenido/a, ' + pName + '!' +
+      (pCompany ? ' Tu diagnóstico para ' + pCompany + ' está listo.' : ' Tu diagnóstico está listo.');
+  }
+
+  // ── Progreso ────────────────────────────────────────────────
+  function updateUI() {
+    var pct = Math.round((cur / 10) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    document.getElementById('progressLabel').textContent = 'Sección ' + (cur + 1) + ' de 10';
+    document.querySelectorAll('.section-tab').forEach(function(t, i) {
+      t.classList.remove('active','done');
+      if (i === cur) t.classList.add('active');
+      else if (done.has(i)) t.classList.add('done');
+    });
+  }
+
+  function showSec(idx) {
+    document.querySelectorAll('.q-section').forEach(function(s){ s.classList.remove('active'); });
+    var el = document.getElementById('sec-' + idx);
+    if (el) { el.classList.add('active'); setTimeout(function(){ el.scrollIntoView({behavior:'smooth',block:'start'}); }, 60); }
+    cur = idx; updateUI();
+  }
+
+  function next(from) { done.add(from); showSec(from + 1); }
+  function prev(from) { showSec(from - 1); }
+  function goTo(idx)  { showSec(idx); }
+
+  function sel(el) {
+    el.closest('.radio-group').querySelectorAll('.radio-option').forEach(function(o){ o.classList.remove('selected'); });
+    el.classList.add('selected');
+  }
+  function chk(el) { el.classList.toggle('selected'); }
+
+  // ══════════════════════════════════════════════════════════════
+  //  RECOLECCIÓN DE RESPUESTAS
+  // ══════════════════════════════════════════════════════════════
+
+  function getItemAnswer(item) {
+    // Radio: buscar opción seleccionada
+    var sr = item.querySelector('.radio-option.selected label');
+    if (sr) return sr.textContent.trim();
+
+    // Checkbox: puede ser múltiple
+    if (item.querySelector('.checkbox-group')) {
+      var sel = item.querySelectorAll('.checkbox-option.selected label');
+      return sel.length ? Array.from(sel).map(function(l){ return l.textContent.trim(); }) : ['Sin selección'];
+    }
+
+    // Tabla de colores (color-table)
+    if (item.querySelector('.color-table')) {
+      var clbls = item.querySelectorAll('.color-label');
+      var cinps = item.querySelectorAll('.color-table input');
+      var obj = {};
+      clbls.forEach(function(l, i){ obj[l.textContent.trim()] = (cinps[i] && cinps[i].value.trim()) || '—'; });
+      return obj;
+    }
+
+    // Múltiples inputs dentro de un div (objetivos, herramientas)
+    var divWrapper = item.querySelector('div[style]');
+    if (divWrapper) {
+      var dinps = divWrapper.querySelectorAll('input.input-field');
+      if (dinps.length > 1) {
+        return Array.from(dinps).map(function(inp){ return inp.value.trim() || '—'; });
+      }
+    }
+
+    // Textarea única
+    var ta = item.querySelector('textarea');
+    if (ta) return ta.value.trim() || '—';
+
+    // Input única
+    var inp = item.querySelector('input.input-field');
+    if (inp) return inp.value.trim() || '—';
+
+    return '—';
+  }
+
+  function collectAnswers() {
+    var secNames = [
+      'Identidad e Historia de la Empresa',
+      'Datos Generales del Negocio',
+      'Situación Actual y Desafíos',
+      'Clientes y Mercado',
+      'Ventas e Ingresos',
+      'Marketing y Presencia Digital',
+      'Identidad Visual y Branding',
+      'Redes Sociales y Presencia en Línea',
+      'Tecnología y Operaciones',
+      'Visión y Colaboración'
+    ];
+
+    var result = {
+      metadata: {
+        fecha_envio: new Date().toLocaleString('es-ES', {dateStyle:'full', timeStyle:'short'}),
+        nombre:       pName    || '—',
+        email:        pEmail   || '—',
+        empresa:      pCompany || '—',
+        sector:       pSector  || '—',
+        reto_inicial: pReto    || '—'
+      },
+      secciones: []
+    };
+
+    for (var s = 0; s < 10; s++) {
+      var secEl = document.getElementById('sec-' + s);
+      if (!secEl) continue;
+      var preguntas = [];
+
+      // Sección 8 (s=7): grilla de redes sociales (sin q-num)
+      if (s === 7) {
+        var grid = secEl.querySelector('.social-grid');
+        if (grid) {
+          var lbls = grid.querySelectorAll('.social-label');
+          var inps = grid.querySelectorAll('input');
+          var redes = {};
+          lbls.forEach(function(l, i) {
+            var key = l.textContent.replace(/[^\w\s\/]/g, '').trim();
+            redes[key] = (inps[i] && inps[i].value.trim()) || '—';
+          });
+          preguntas.push({ numero: 'R', pregunta: 'Perfiles en Redes Sociales', respuesta: redes });
+        }
+      }
+
+      // Preguntas numeradas (todas las secciones)
+      secEl.querySelectorAll('.q-item').forEach(function(item) {
+        var numEl = item.querySelector('.q-num');
+        var lblEl = item.querySelector('.q-label-text');
+        if (!numEl || !lblEl) return;
+        preguntas.push({
+          numero: parseInt(numEl.textContent.trim()),
+          pregunta: lblEl.textContent.trim(),
+          respuesta: getItemAnswer(item)
+        });
+      });
+
+      result.secciones.push({ seccion: s + 1, titulo: secNames[s], preguntas: preguntas });
+    }
+
+    return result;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  CONSTRUIR HTML DEL CORREO ADMIN (incluye JSON al final)
+  // ══════════════════════════════════════════════════════════════
+
+  function answerToStr(resp) {
+    if (Array.isArray(resp))             return resp.join(' · ');
+    if (typeof resp === 'object' && resp) return Object.entries(resp).map(function(e){ return '<b>' + e[0] + ':</b> ' + e[1]; }).join('<br/>');
+    return String(resp || '—');
+  }
+
+  function buildAnswersHTML(data) {
+    var m = data.metadata;
+    var h = '';
+    h += '<div style="font-family:Arial,sans-serif;color:#2B2B2B;max-width:680px;">';
+
+    // Header
+    h += '<div style="background:#2B2B2B;padding:22px 26px;border-radius:8px 8px 0 0;">';
+    h += '<h2 style="color:#fff;margin:0;font-size:15px;letter-spacing:.04em;">📋 DIAGNÓSTICO COMPLETO · FLEXISTUDIO</h2>';
+    h += '<p style="color:#aaa;margin:5px 0 0;font-size:11px;">Enviado: ' + m.fecha_envio + '</p>';
+    h += '</div>';
+
+    // Priority + client data
+    h += '<div style="background:#fff3f3;border:1px solid #f5c6c6;padding:14px 26px;">';
+    h += '<span style="background:#c0392b;color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:50px;letter-spacing:.08em;">🔴 PRIORIDAD ALTA — RESPONDER EN 48H</span>';
+    h += '</div>';
+    h += '<div style="background:#f9f9f7;border:1px solid #e2ddd8;border-top:none;padding:16px 26px;">';
+    h += '<table style="width:100%;border-collapse:collapse;">';
+    var mFields = [['NOMBRE', m.nombre],['EMAIL','<a href="mailto:'+m.email+'" style="color:#7A8F7B;">'+m.email+'</a>'],['EMPRESA',m.empresa],['SECTOR',m.sector],['RETO INICIAL',m.reto_inicial]];
+    mFields.forEach(function(f){
+      h += '<tr><td style="font-size:11px;font-weight:700;color:#7A8F7B;padding:4px 16px 4px 0;width:130px;white-space:nowrap;">'+f[0]+'</td>';
+      h += '<td style="font-size:13px;font-weight:600;padding:4px 0;">'+f[1]+'</td></tr>';
+    });
+    h += '</table></div>';
+
+    // Sections
+    data.secciones.forEach(function(sec) {
+      h += '<div style="margin-top:16px;">';
+      h += '<div style="background:#7A8F7B;padding:9px 26px;">';
+      h += '<h3 style="color:#fff;margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;">SECCIÓN ' + sec.seccion + ' — ' + sec.titulo.toUpperCase() + '</h3>';
+      h += '</div>';
+      sec.preguntas.forEach(function(p, i) {
+        var bg = i % 2 === 0 ? '#ffffff' : '#f9f9f7';
+        h += '<div style="background:' + bg + ';border:1px solid #e2ddd8;border-top:none;padding:10px 26px;">';
+        if (p.numero !== 'R') {
+          h += '<span style="font-size:10px;font-weight:700;color:#D8B4A0;margin-right:6px;">P' + p.numero + '</span>';
+        }
+        h += '<span style="font-size:12px;font-weight:600;color:#2B2B2B;">' + p.pregunta + '</span>';
+        h += '<div style="font-size:13px;color:#555;margin-top:4px;line-height:1.6;">' + answerToStr(p.respuesta) + '</div>';
+        h += '</div>';
+      });
+      h += '</div>';
+    });
+
+    // JSON block
+    var jsonStr = JSON.stringify(data, null, 2);
+    h += '<div style="margin-top:20px;background:#1e1e1e;padding:16px 22px;border-radius:0 0 8px 8px;">';
+    h += '<p style="color:#7A8F7B;font-size:10px;font-weight:700;margin:0 0 8px;letter-spacing:.06em;">📄 DATOS COMPLETOS EN JSON</p>';
+    h += '<pre style="color:#a8d5a2;font-size:10px;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-all;">' + jsonStr + '</pre>';
+    h += '</div>';
+
+    h += '</div>';
+    return h;
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  //  SUBMIT — envía correos + genera JSON descargable
+  // ══════════════════════════════════════════════════════════════
+
+  function submitQ() {
+    done.add(9);
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    // 1. Recolectar todas las respuestas
+    var answersData  = collectAnswers();
+    var jsonStr      = JSON.stringify(answersData, null, 2);
+    var answersHTML  = buildAnswersHTML(answersData);
+
+    // 2. Generar archivo JSON descargable en la página de éxito
+    try {
+      var blob    = new Blob([jsonStr], { type: 'application/json' });
+      var blobUrl = URL.createObjectURL(blob);
+      var dlLink  = document.getElementById('downloadJSON');
+      var dlNote  = document.getElementById('downloadNote');
+      if (dlLink) {
+        dlLink.href     = blobUrl;
+        dlLink.download = 'diagnostico_' + (pName || 'cliente').replace(/\s+/g,'_') + '_' + new Date().toISOString().slice(0,10) + '.json';
+        dlLink.style.display = 'inline-flex';
+      }
+      if (dlNote) dlNote.style.display = 'block';
+    } catch(e) { console.warn('JSON Blob:', e); }
+
+    // 3. Enviar correos vía EmailJS
+    if (typeof emailjs !== 'undefined' && EMAILJS_SERVICE_ID !== 'TU_SERVICE_ID') {
+
+      // Correo 1 → Cliente: agradecimiento
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_CLIENTE, {
+        to_name:   pName    || 'Cliente',
+        to_email:  pEmail   || '',
+        negocio:   pCompany || '—',
+        sector:    pSector  || '—',
+        from_name: 'FlexiStudio',
+        reply_to:  'flexyva001@gmail.com'
+      }).catch(function(err) { console.warn('Email cliente:', err); });
+
+      // Correo 2 → Admin: diagnóstico completo con JSON embebido
+      emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ADMIN, {
+        to_email:        'flexyva001@gmail.com',
+        cliente_nombre:  pName    || '—',
+        cliente_email:   pEmail   || '—',
+        cliente_negocio: pCompany || '—',
+        cliente_sector:  pSector  || '—',
+        cliente_reto:    pReto    || '—',
+        prioridad:       '🔴 ALTA',
+        respuestas_html: answersHTML,
+        json_data:       jsonStr
+      }).catch(function(err) { console.warn('Email admin:', err); });
+    }
+
+    // 4. UI: ocultar secciones, mostrar pantalla de éxito
+    document.querySelectorAll('.q-section').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('progressFill').style.width = '100%';
+    document.getElementById('progressPct').textContent  = '100%';
+    document.getElementById('progressLabel').textContent = '¡Diagnóstico completado!';
+    document.querySelectorAll('.section-tab').forEach(function(t){ t.classList.remove('active'); t.classList.add('done'); });
+
+    if (pName) document.getElementById('successName').textContent = pName + '!';
+
+    var s = document.getElementById('qSuccess');
+    s.classList.add('show');
+    setTimeout(function(){ s.scrollIntoView({behavior:'smooth', block:'center'}); }, 100);
+
+    // 5. Cuenta regresiva y redirección
+    var secs  = 8;
+    var timer = setInterval(function() {
+      secs--;
+      var el = document.getElementById('countdown');
+      if (el) el.textContent = secs;
+      if (secs <= 0) { clearInterval(timer); window.location.href = 'diagnostico-completo.html'; }
+    }, 1000);
+  }
+
+  updateUI();
+</script>
+</body>
+</html>

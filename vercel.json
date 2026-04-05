@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "routes": [
+    { "src": "/cuestionario", "dest": "/cuestionario.html" },
+    { "src": "/cuestionario.html", "dest": "/cuestionario.html" },
+    { "src": "/", "dest": "/index.html" }
+  ]
+}
