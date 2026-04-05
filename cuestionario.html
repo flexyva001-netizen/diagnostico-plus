@@ -728,25 +728,53 @@
       });
       if (diagError) throw diagError;
 
-      // 2b. INSERT respuestas individuales (una fila por pregunta)
-      var filas = (answersData.respuestas || []).map(function(item) {
-        var esComplejo = (typeof item.r === 'object' && item.r !== null);
-        return {
-          diagnostico_id:  diagId,
-          lead_id:         pLeadId || null,
-          seccion_num:     item.s,
-          seccion_nombre:  item.sec,
-          pregunta_num:    String(item.n),
-          pregunta_texto:  item.p,
-          tipo_respuesta:  Array.isArray(item.r) ? 'opcion_multiple' : esComplejo ? 'objeto' : 'texto',
-          respuesta_texto: esComplejo ? null : String(item.r || '—'),
-          respuesta_json:  esComplejo ? item.r : null
-        };
+      // 2b. INSERT diagnostico_respuestas — una sola fila con todas las respuestas mapeadas
+      var colMap = {
+        '1':  'historia_origen',      '2':  'mision',
+        '3':  'vision',               '4':  'valores',
+        '5':  'publico_objetivo',     '6':  'eslogan',
+        '7':  'anos_operando',        '8':  'cantidad_empleados',
+        '9':  'ubicacion_operacion',  '10': 'mayor_reto',
+        '11': 'objetivos_12_meses',   '12': 'area_mejora',
+        '13': 'urgencia',             '14': 'adquisicion_clientes',
+        '15': 'clientes_nuevos_mes',  '16': 'rango_ingresos',
+        '17': 'proceso_ventas',       '18': 'frecuencia_publicacion',
+        '19': 'presupuesto_marketing','20': 'identidad_visual',
+        '21': 'colores_marca',        '22': 'tipografias',
+        '23': 'tiene_logo',           '24': 'sensaciones_marca',
+        '25': 'marcas_referencia',    '26': 'materiales_marketing',
+        '27': 'tono_comunicacion',    '28': 'plataforma_resultados',
+        '29': 'red_social_crecer',    '30': 'nivel_digitalizacion',
+        '31': 'procesos_automatizar', '32': 'vision_3_anos',
+        '33': 'tipo_apoyo_buscado',   '34': 'informacion_adicional',
+        'R':  'redes_sociales'
+      };
+
+      var fila = {
+        diagnostico_id: diagId,
+        lead_id:        pLeadId  || null,
+        nombre:         pName    || null,
+        email:          pEmail   || null,
+        empresa:        pCompany || null,
+        sector:         pSector  || null
+      };
+
+      (answersData.respuestas || []).forEach(function(item) {
+        var col = colMap[String(item.n)];
+        if (!col) return;
+        if (col === 'redes_sociales') {
+          fila[col] = item.r;  // JSONB
+        } else if (Array.isArray(item.r)) {
+          fila[col] = item.r.join(' · ');
+        } else if (typeof item.r === 'object' && item.r !== null) {
+          fila[col] = JSON.stringify(item.r);
+        } else {
+          fila[col] = String(item.r || '—');
+        }
       });
-      if (filas.length > 0) {
-        var { error: rErr } = await _sb.from('diagnostico_respuestas').insert(filas);
-        if (rErr) console.warn('Respuestas individuales:', rErr);
-      }
+
+      var { error: rErr } = await _sb.from('diagnostico_respuestas').insert(fila);
+      if (rErr) console.warn('diagnostico_respuestas:', rErr);
 
       // 2c. INSERT log de actividad
       await _sb.from('log_actividad').insert({
@@ -790,7 +818,9 @@
         cliente_negocio: pCompany || '—',
         cliente_sector:  pSector  || '—',
         cliente_reto:    pReto    || '—',
-        prioridad:       '🔴 ALTA',
+        prioridad:       'ALTA',
+        fecha:           new Date().toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }),
+        total_preguntas: '34',
         respuestas_html: answersHTML,
         json_data:       jsonStr
       }).catch(function(err) { console.warn('Email admin:', err); });
